@@ -36,13 +36,15 @@ def audiogen():
 def tts():
     prompt = request.args.get("prompt")
     language = request.args.get("language", "en")
-    mode = request.args.get("mode", "xtts")
+    model = request.args.get("model", "xtts")
     if not prompt:
         return "missing content"
-    match mode:
+    match model:
         case "xtts":
             return xtts.predict(prompt, language)
         case "openvoice":
+            if language=="en":
+                language="en-us"
             return openvoice.predict(prompt, language)
 
 
