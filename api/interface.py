@@ -227,10 +227,6 @@ with gr.Blocks(
                 with gr.Column(scale=4):
                     preview_reset_button = gr.Button("Reset")
 
-        with gr.Column(scale=6, visible=False) as result:
-            video_result = gr.Video()
-            reset_button = gr.Button("Reset All")
-
     upload_button.click(mock_cut_clips, video_clips, video_clips)
     upload_button.click(mock_fetch_metadata, metadatas, metadatas)
     upload_button.click(lambda: gr.update(visible=True), None, [next_button])
@@ -247,34 +243,16 @@ with gr.Blocks(
         [video_upload, clip_preview, perception_module],
     )
     video_reset_button.click(lambda: gr.Video(), None, [up_video])
-    # generate_button.click(generate, None, [result])
-    generate_button.click(
-        lambda: (gr.update(visible=False), gr.update(visible=True)),
-        None,
-        [perception_module, result],
-    )
-    generate_button.click(generate_result, None, video_result)
+    generate_button.click(generate_result, None, full_video)
     preview_reset_button.click(
         lambda: (
             gr.update(visible=True),
             gr.update(visible=True),
             gr.update(visible=False),
-            gr.update(visible=False),
             gr.Video()
         ),
         None,
-        [video_upload,clip_preview, perception_module, result, up_video],
-    )
-    reset_button.click(
-        lambda: (
-            gr.update(visible=True),
-            gr.update(visible=True),
-            gr.update(visible=False),
-            gr.update(visible=False),
-            gr.Video()
-        ),
-        None,
-        [video_upload,clip_preview, perception_module, result, up_video],
+        [video_upload,clip_preview, perception_module, up_video],
     )
 
 demo.launch()
