@@ -119,7 +119,6 @@ with gr.Blocks(
             # with gr.Column(scale=3, min_width=0):
             #     run = gr.Button("Send")
             text_outputs = []
-            musicgen_outputs = []
             audiogen_outputs = []
             tts_outputs = []
             for i in range(1, 5):
@@ -157,11 +156,12 @@ with gr.Blocks(
                                 clip_aspects = gr.Textbox(
                                     label="Key Aspects",
                                     value="key aspects",
-                                    lines=5
+                                    lines=6
                                 )
-                                clip_possible_sounds = gr.Audio(
+                                clip_possible_sounds = gr.Textbox(
                                     label="Possible Sounds",
-                                    value="./api/generated.wav"
+                                    value="possible sounds",
+                                    lines=6
                                 )
                     text_outputs.append(clip_caption)
                     text_outputs.append(clip_emotion)
@@ -170,43 +170,51 @@ with gr.Blocks(
 
                     with gr.Column(scale=4):
                         gr.Video("./api/sora.webm")
-                        musicgen = gr.Audio()
                         audiogen = gr.Audio()
+                        audiogen_2 = gr.Audio()
                         tts = gr.Audio()
-                    musicgen_outputs.append(musicgen)
                     audiogen_outputs.append(audiogen)
+                    audiogen_outputs.append(audiogen_2)
                     tts_outputs.append(tts)
                 tab.__exit__()
 
             with gr.Tab("overall"):
                 with gr.Row():
-                    overall_chatbot = gr.Chatbot(
-                        label="Discussions between Two Agents",
-                        value=[("mesage", "response"), ("mesage2", "response2")],
-                        height="20em",
-                    )
-                with gr.Row():
-                    with gr.Column():
-                        overall_caption = gr.Textbox(
-                            label="Overall Caption",
-                            value="Please upload your video first",
-                            interactive=False,
-                            lines=2,
-                        )
-                        overall_emotion = gr.Textbox(
-                            label="Emotion Variant",
-                            value="emotion variant",
-                            interactive=False,
-                            lines=2,
-                        )
-                    with gr.Column():
-                        clip_aspects = gr.Textbox(
-                            label="Key Aspects", value="key aspects", lines=7
-                        )
-                with gr.Row():
-                    bgm_description = gr.Textbox(
-                        label="BGM Description", value="bgm description", lines=2
-                    )
+                    with gr.Column(scale=6):
+                        with gr.Row():
+                            overall_chatbot = gr.Chatbot(
+                                label="Discussions between Two Agents",
+                                value=[("mesage", "response"), ("mesage2", "response2")],
+                                height="20em",
+                            )
+                        with gr.Row():
+                            with gr.Column():
+                                overall_caption = gr.Textbox(
+                                    label="Overall Caption",
+                                    value="Please upload your video first",
+                                    interactive=False,
+                                    lines=2,
+                                )
+                                overall_emotion = gr.Textbox(
+                                    label="Emotion Variant",
+                                    value="emotion variant",
+                                    interactive=False,
+                                    lines=2,
+                                )
+                            with gr.Column():
+                                clip_aspects = gr.Textbox(
+                                    label="Key Aspects", value="key aspects", lines=7
+                                )
+                        with gr.Row():
+                            bgm_description = gr.Textbox(
+                                label="BGM Description", value="bgm description", lines=2
+                            )
+                        
+
+                    with gr.Column(scale=4):
+                        full_video=gr.Video("./api/sora.webm")
+                        musicgen = gr.Audio(label="BGM Generation",value="./api/generated.wav")
+                        
             text_outputs.append(overall_caption)
             # with gr.Column(scale=4, visible=False) as audio_preview:
             #     musicgen = gr.Audio()
@@ -226,7 +234,6 @@ with gr.Blocks(
     upload_button.click(mock_cut_clips, video_clips, video_clips)
     upload_button.click(mock_fetch_metadata, metadatas, metadatas)
     upload_button.click(lambda: gr.update(visible=True), None, [next_button])
-    next_button.click(mock_musicgen, musicgen_outputs, musicgen_outputs)
     next_button.click(mock_audiogen, audiogen_outputs, audiogen_outputs)
     next_button.click(mock_tts, tts_outputs, tts_outputs)
     next_button.click(generate_clips, text_outputs, text_outputs)
