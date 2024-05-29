@@ -1,4 +1,5 @@
 import time
+import random
 
 import gradio as gr
 from gradio.themes import Base, colors, sizes, GoogleFont
@@ -21,6 +22,7 @@ gvlabtheme = Base(
         "monospace",
     ),
 )
+messages = ["the first question", "the first answer", "the second question", "the second answer"]
 
 
 def generate_clips(*args: list[gr.Textbox]):
@@ -57,33 +59,31 @@ def mock_tts(*args: list[gr.Audio]) -> list[gr.Audio]:
     return [gr.Audio("./api/generated.wav", label="TTS", interactive=False)] * len(args)
 
 
-# def mock_audio_generation():
-#     time.sleep(5.6)
-#     return (
-#         gr.Audio(
-#             "./api/generated.wav",
-#             label="BGM Generation",
-#         ),
-#         gr.Audio(
-#             "./api/generated.wav",
-#             label="Audio Generation",
-#         ),
-#         gr.Audio(
-#             "./api/generated.wav",
-#             label="TTS",
-#         ),
-#     )
-
-
 def generate_result():
     time.sleep(7)
     return gr.Video("./api/sora.webm")
 
 
+def mock_chatbot(*chatbots):
+    assert len(messages) % 2 == 0
+    for bot in chatbots:
+        for round in range(len(messages) // 2):
+            bot[round][0] = ""
+            bot[round][1] = ""
+            for char in messages[round * 2]:
+                bot[round][0] += char
+                time.sleep(random.uniform(0.03,0.08))
+                yield chatbots
+            for char in messages[round * 2 + 1]:
+                bot[round][1] += char
+                time.sleep(random.uniform(0.03,0.08))
+                yield chatbots
+
+
 with gr.Blocks(
-    # title="InternVideo-VideoChat!",
-    # theme=gvlabtheme,
-    # css="#chatbot {overflow:auto; height:500px;} #InputVideo {overflow:visible; height:320px;} footer {visibility: none}",
+        # title="InternVideo-VideoChat!",
+        # theme=gvlabtheme,
+        # css="#chatbot {overflow:auto; height:500px;} #InputVideo {overflow:visible; height:320px;} footer {visibility: none}",
 ) as demo:
     with gr.Row():
         with gr.Column(scale=4, visible=True) as video_upload:
@@ -106,7 +106,7 @@ with gr.Blocks(
                 )
                 metadatas.append(clip_metadata)
                 tab.__exit__()
-            next_button = gr.Button("Next", variant="primary",visible=False)
+            next_button = gr.Button("Next", variant="primary", visible=False)
 
         with gr.Column(visible=False) as perception_module:
             # with gr.Row():
@@ -121,6 +121,7 @@ with gr.Blocks(
             text_outputs = []
             audiogen_outputs = []
             tts_outputs = []
+            chatbots = []
             for i in range(1, 5):
                 tab = gr.Tab("scene" + str(i))
                 tab.__enter__()
@@ -129,10 +130,7 @@ with gr.Blocks(
                         with gr.Row():
                             clip_chatbot = gr.Chatbot(
                                 label="Discussions between Two Agents",
-                                value=[
-                                    ("mesage", "response"),
-                                    ("mesage2", "response2"),
-                                ],
+                                value=[[None, None]] * (len(messages) // 2),
                                 height="30em",
                             )
                         with gr.Row():
@@ -163,6 +161,7 @@ with gr.Blocks(
                                     value="possible sounds",
                                     lines=6
                                 )
+                    chatbots.append(clip_chatbot)
                     text_outputs.append(clip_caption)
                     text_outputs.append(clip_emotion)
                     text_outputs.append(clip_subtitles)
@@ -184,7 +183,7 @@ with gr.Blocks(
                         with gr.Row():
                             overall_chatbot = gr.Chatbot(
                                 label="Discussions between Two Agents",
-                                value=[("mesage", "response"), ("mesage2", "response2")],
+                                value=[["mesage", "response"], ["mesage2", "response2"]],
                                 height="20em",
                             )
                         with gr.Row():
@@ -209,18 +208,17 @@ with gr.Blocks(
                             bgm_description = gr.Textbox(
                                 label="BGM Description", value="bgm description", lines=2
                             )
-                        
 
                     with gr.Column(scale=4):
-                        full_video=gr.Video("./api/sora.webm")
-                        musicgen = gr.Audio(label="BGM Generation",value="./api/generated.wav")
-                        
+                        full_video = gr.Video("./api/sora.webm")
+                        musicgen = gr.Audio(label="BGM Generation", value="./api/generated.wav")
+
             text_outputs.append(overall_caption)
             # with gr.Column(scale=4, visible=False) as audio_preview:
             #     musicgen = gr.Audio()
             #     audiogen = gr.Audio()
             #     tts = gr.Audio()
-            
+
             with gr.Row():
                 with gr.Column(scale=6):
                     generate_button = gr.Button("Merge", variant="primary")
@@ -230,6 +228,7 @@ with gr.Blocks(
     upload_button.click(mock_cut_clips, video_clips, video_clips)
     upload_button.click(mock_fetch_metadata, metadatas, metadatas)
     upload_button.click(lambda: gr.update(visible=True), None, [next_button])
+    next_button.click(mock_chatbot, inputs=chatbots, outputs=chatbots)
     next_button.click(mock_audiogen, audiogen_outputs, audiogen_outputs)
     next_button.click(mock_tts, tts_outputs, tts_outputs)
     next_button.click(generate_clips, text_outputs, text_outputs)
@@ -252,7 +251,7 @@ with gr.Blocks(
             gr.Video()
         ),
         None,
-        [video_upload,clip_preview, perception_module, up_video],
+        [video_upload, clip_preview, perception_module, up_video],
     )
 
 demo.launch()
