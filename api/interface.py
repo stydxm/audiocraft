@@ -78,6 +78,7 @@ def mock_chatbot(*chatbots):
                 bot[round][1] += char
                 time.sleep(random.uniform(0.03,0.08))
                 yield chatbots
+            time.sleep(random.uniform(0.5,1.0))
 
 
 with gr.Blocks(
